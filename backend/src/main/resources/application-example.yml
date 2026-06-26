@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: gift-gallery-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gift_gallery
+    username: postgres
+    password: YOUR_POSTGRES_PASSWORD
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080
+
+cloudinary:
+  cloud-name: YOUR_CLOUD_NAME
+  api-key: YOUR_API_KEY
+  api-secret: YOUR_API_SECRET

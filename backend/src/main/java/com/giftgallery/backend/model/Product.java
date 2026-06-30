@@ -1,5 +1,6 @@
 package com.giftgallery.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,11 +34,13 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // Fix: EAGER so category is always loaded — prevents LazyInitializationException
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Category category;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "product_images",
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
@@ -54,4 +57,4 @@ public class Product {
         createdAt = LocalDateTime.now();
         if (isActive == null) isActive = true;
     }
-}
+}

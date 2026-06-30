@@ -3,8 +3,10 @@ package com.giftgallery.backend.service;
 import com.giftgallery.backend.model.*;
 import com.giftgallery.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,18 +24,18 @@ public class OrderService {
     @Transactional
     public Order placeOrder(String userEmail, String shippingAddress) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<CartItem> cartItems = cartItemRepository.findByUserId(user.getId());
 
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty");
         }
 
         BigDecimal total = cartItems.stream()
                 .map(item -> item.getProduct().getPrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         Order order = Order.builder()
                 .user(user)
@@ -48,7 +50,8 @@ public class OrderService {
             Product product = cartItem.getProduct();
 
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for: " + product.getName());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Insufficient stock for: " + product.getName());
             }
 
             product.setStock(product.getStock() - cartItem.getQuantity());
@@ -72,13 +75,22 @@ public class OrderService {
 
     public List<Order> getMyOrders(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
     public Order getOrderById(String orderId, String userEmail) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
+        // Verify the requesting user owns this order
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         return order;
     }
 
@@ -88,8 +100,18 @@ public class OrderService {
 
     public Order updateOrderStatus(String orderId, Order.OrderStatus status) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
         order.setStatus(status);
         return orderRepository.save(order);
     }
+
+    /** Atomically saves both status + paymentId — called after Razorpay verification */
+    public Order confirmPayment(String orderId, String paymentId, Order.OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        order.setStatus(status);
+        order.setPaymentId(paymentId);
+        return orderRepository.save(order);
+    }
 }
+

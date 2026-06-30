@@ -7,8 +7,10 @@ import com.giftgallery.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,13 +29,16 @@ public class ProductService {
                                  List<MultipartFile> images) {
 
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Category not found with id: " + categoryId));
 
         List<String> imageUrls = new ArrayList<>();
         if (images != null) {
             for (MultipartFile image : images) {
-                String url = cloudinaryService.uploadImage(image);
-                imageUrls.add(url);
+                if (!image.isEmpty()) {
+                    String url = cloudinaryService.uploadImage(image);
+                    imageUrls.add(url);
+                }
             }
         }
 
@@ -60,7 +65,7 @@ public class ProductService {
 
     public Product getProductById(String id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
     }
 
     public List<Product> searchProducts(String query) {
@@ -71,7 +76,7 @@ public class ProductService {
                                  double price, int stock, String categoryId) {
         Product product = getProductById(id);
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
 
         product.setName(name);
         product.setDescription(description);
@@ -87,4 +92,4 @@ public class ProductService {
         product.setIsActive(false);
         productRepository.save(product);
     }
-}
+}

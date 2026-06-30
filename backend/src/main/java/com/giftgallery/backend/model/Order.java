@@ -1,5 +1,7 @@
 package com.giftgallery.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,11 +23,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    // @JsonIgnore user — we don't want full user object in order responses
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("order") // break circular: OrderItem.order → Order.items → OrderItem...
     private List<OrderItem> items;
 
     @Enumerated(EnumType.STRING)
@@ -52,4 +57,4 @@ public class Order {
     public enum OrderStatus {
         PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
     }
-}
+}

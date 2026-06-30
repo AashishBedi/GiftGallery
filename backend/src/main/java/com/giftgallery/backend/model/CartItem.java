@@ -1,5 +1,6 @@
 package com.giftgallery.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +19,8 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    // @JsonIgnore: user data must never be serialized in cart responses (security + circular ref)
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -28,4 +31,4 @@ public class CartItem {
 
     @Column(nullable = false)
     private Integer quantity;
-}
+}

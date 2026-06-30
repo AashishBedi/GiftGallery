@@ -7,8 +7,10 @@ import com.giftgallery.backend.dto.RegisterRequest;
 import com.giftgallery.backend.model.User;
 import com.giftgallery.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +22,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already registered");
         }
 
         User user = User.builder()
@@ -45,10 +47,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or password");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
@@ -60,4 +62,4 @@ public class AuthService {
                 .role(user.getRole().name())
                 .build();
     }
-}
+}

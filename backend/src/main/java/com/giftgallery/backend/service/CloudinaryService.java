@@ -15,9 +15,10 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
 
+    @SuppressWarnings("unchecked")
     public String uploadImage(MultipartFile file) {
         try {
-            Map result = cloudinary.uploader().upload(
+            Map<String, Object> result = cloudinary.uploader().upload(
                     file.getBytes(),
                     ObjectUtils.asMap(
                             "folder", "gift-gallery",

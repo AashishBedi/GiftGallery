@@ -1,0 +1,49 @@
+{
+  "properties": [
+    {
+      "name": "cloudinary.cloud-name",
+      "type": "java.lang.String",
+      "description": "Cloudinary account cloud name."
+    },
+    {
+      "name": "cloudinary.api-key",
+      "type": "java.lang.String",
+      "description": "Cloudinary API key."
+    },
+    {
+      "name": "cloudinary.api-secret",
+      "type": "java.lang.String",
+      "description": "Cloudinary API secret."
+    },
+    {
+      "name": "razorpay.key-id",
+      "type": "java.lang.String",
+      "description": "Razorpay API key ID."
+    },
+    {
+      "name": "razorpay.key-secret",
+      "type": "java.lang.String",
+      "description": "Razorpay API key secret."
+    },
+    {
+      "name": "admin.name",
+      "type": "java.lang.String",
+      "description": "Display name for the bootstrap admin account."
+    },
+    {
+      "name": "admin.email",
+      "type": "java.lang.String",
+      "description": "Login email for the bootstrap admin account."
+    },
+    {
+      "name": "admin.password",
+      "type": "java.lang.String",
+      "description": "Plain-text password for the bootstrap admin account (stored BCrypt-hashed)."
+    },
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret key used for signing JWT tokens. Must be at least 256 bits (32 characters)."
+    }
+  ]
+}

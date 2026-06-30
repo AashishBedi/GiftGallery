@@ -15,7 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -41,8 +40,8 @@ public class PaymentController {
         boolean isValid = paymentService.verifyPayment(razorpayOrderId, paymentId, signature);
 
         if (isValid) {
-            Order order = orderService.updateOrderStatus(orderId, Order.OrderStatus.PROCESSING);
-            order.setPaymentId(paymentId);
+            // Update status AND persist the Razorpay payment ID
+            orderService.confirmPayment(orderId, paymentId, Order.OrderStatus.PROCESSING);
             return ResponseEntity.ok(Map.of(
                     "message", "Payment verified successfully",
                     "orderId", orderId,
@@ -54,4 +53,4 @@ public class PaymentController {
             ));
         }
     }
-}
+}
